@@ -1,1 +1,40 @@
+name: WordsByMe Wake Agent
 
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wordsbyme-wake-agent
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Crawl WordsByMe
+        env:
+          BASE_URL: https://www.wordsbyme.in
+          REQUEST_TIMEOUT: "30"
+          MAX_PAGES: "200"
+          DELAY_BETWEEN_PAGES: "0.5"
+        run: python agent.py
